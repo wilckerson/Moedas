@@ -32,14 +32,14 @@ public class GameManager : MonoBehaviour
 
 				if (sum > target) {
 						//Errou, desmarca as moedas selecionadas
-						CoinsManager.DeselectCoins ();
+						MoneyManager.DeselectMoney ();
 						//Debug.Log ("Errou");
 						sum = 0;
 				} else if (sum == target) {
 						//Debug.Log ("Acertou");
 						sum = 0;
 						//Acertou, remove as moedas selecionadas
-						CoinsManager.RemoveSelectedCoins ();
+			MoneyManager.RemoveSelectedMoney ();
 						//Gera novo target
 						newTarget ();
 						//Conta os pontos
@@ -55,13 +55,13 @@ public class GameManager : MonoBehaviour
 				do {
 						target = 0;
 						//target = Random.Range (10, 200);
-						var coinsGroup = CoinsManager.lstCoins.GroupBy (g => g.Value);
+						var moneyGroup = MoneyManager.lstMoney.GroupBy (g => g.Value);
 						float porcentage = 40 - (gameTime/3);
 			if(porcentage < 0)
 			{
 				porcentage = 0;
 			}
-						foreach (var group in coinsGroup) {
+						foreach (var group in moneyGroup) {
 								if (group.Key != 1) {
 										if (Random.Range (0, 100) > porcentage) {
 
@@ -73,11 +73,11 @@ public class GameManager : MonoBehaviour
 						}
 
 						if (target == 0) {
-								var idx = Random.Range (0, CoinsManager.lstCoins.Count);
-								target = CoinsManager.lstCoins [idx].Value;
+								var idx = Random.Range (0, MoneyManager.lstMoney.Count);
+								target = MoneyManager.lstMoney [idx].Value;
 						}
 
-				} while(oldTarget == target && CoinsManager.lstCoins.Count > 1);// || target % 5 != 0);
+				} while(oldTarget == target && MoneyManager.lstMoney.Count > 1);// || target % 5 != 0);
 
 				//Debug.Log (target);
 				targetText.text = (target / 100f).ToString ("C");
