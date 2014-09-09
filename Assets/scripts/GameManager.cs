@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
 		// Use this for initialization
 		void Start ()
 		{
-	
+		Debug.Log(Application.persistentDataPath);
 		screenTopY = screenTop.transform.position.y;
 				sum = 0;
 				target = 0;

@@ -15,12 +15,16 @@ public class GameOverManager : MonoBehaviour
 		void Start ()
 		{
 	
-				record = PlayerPrefs.GetInt ("Record");
+		Repository.Instance.Load();
+		record = Repository.Instance.GameData.Record;
 				
 
 				if (lastGameTime > record) {
 						record = (int)lastGameTime;
-						PlayerPrefs.SetInt ("Record", record);
+
+			Repository.Instance.GameData.Record = record;
+			Repository.Instance.Save();
+						
 			
 						recordText.text = "Parabens! Voce fez o maior tempo!";
 				} else {
