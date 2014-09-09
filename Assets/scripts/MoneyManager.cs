@@ -17,7 +17,7 @@ public class MoneyManager : MonoBehaviour
 		public int initialSpan = 10;
 		public float spawRange = 3;
 		public static List<Money> lstMoney;
-		float nextSpanTime = 0;
+		static float nextSpanTime = 0;
 		// Use this for initialization
 		void Start ()
 		{
@@ -49,19 +49,22 @@ public class MoneyManager : MonoBehaviour
 
 				AutomaticSpawnLogic ();
 
+
 		}
 
 		void AutomaticSpawnLogic ()
 		{
 				var time = GameManager.gameTime;
 
-				//Debug.Log ("Time: "+ time + " Next: " + nextSpanTime);
-
+				
 				if (time > nextSpanTime) {
 			
-						var randomTime = Random.Range (0.2f, 2f) + (8f / (1 + time));
+						//var randomTime = Random.Range (0.2f, 2f) + (8f / (1 + time));
+			var randomTime = Random.Range (1f, 2f) + (10f / (1 + (time/2f)));
 						nextSpanTime = time + randomTime;
 						
+			Debug.Log ("Next: " + nextSpanTime);
+
 
 						//Extra spawn
 						if (Random.Range (0, 100) > 70) {
@@ -121,4 +124,8 @@ public class MoneyManager : MonoBehaviour
 						}
 				}
 		}
+
+	public static void ForceSpawn(){
+		nextSpanTime = 0;
+	}
 }
