@@ -91,7 +91,7 @@ public class GameManager : MonoBehaviour
 								//break;
 						}
 				}
-				Debug.Log ("Loop");
+				//Debug.Log ("Loop");
 
 				//} while(oldTarget == target && MoneyManager.lstMoney.Count > 1);// || target % 5 != 0);
 

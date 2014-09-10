@@ -32,4 +32,8 @@ public class UIButtom : MonoBehaviour
 		pressed = false;
 		spriteRenderer.sprite = currentSprite;
 	}
+
+	public bool IsPressed(){
+		return pressed;
+	}
 }
