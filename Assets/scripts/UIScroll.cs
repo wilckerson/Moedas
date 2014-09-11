@@ -1,31 +1,39 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+public enum UIScrollDirection
+{
+	Vertical,
+	Horizontal
+}
+
 public class UIScroll : MonoBehaviour
 {
-
+	public UIScrollDirection Direction;
+	public GameObject items;
+	public float hideDuration = 1.5f;
+	public float startMargin = 0;
 	bool pressed = false;
 	Vector3 dragDelta;
 	Vector3 mouseLastPosition;
-	public GameObject items;
-	public GameObject start;
-	public GameObject end;
-
-	public float hideDuration = 0.5f;
 	Bounds itemsBounds;
 	Vector3 boundsCenterFix;
+	BoxCollider2D box2D;
 
 	// Use this for initialization
 	void Start ()
 	{
 		itemsBounds = CalculateBounds (items.transform);
 		boundsCenterFix = itemsBounds.center - items.transform.position;
+		box2D = GetComponent<BoxCollider2D> ();
 
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
+		updateDragDelta ();
+
 		scrollContent ();
 
 		HideItemsFX ();
@@ -45,7 +53,8 @@ public class UIScroll : MonoBehaviour
 //				item.gameObject.SetActive(true);
 //			}
 
-
+		//Debug.DrawLine(box2D.bounds.min,box2D.bounds.max);
+		Debug.DrawLine (itemsBounds.min, itemsBounds.max, Color.red);
 
 	}
 
@@ -53,7 +62,7 @@ public class UIScroll : MonoBehaviour
 	{
 
 		foreach (Transform item in items.transform) {
-			var components = item.gameObject.GetComponentsInChildren<Component> ();
+			var components = item.gameObject.GetComponentsInChildren<Component> (false);
 		
 			foreach (var component in components) {
 				if (component is SpriteRenderer) {
@@ -70,58 +79,57 @@ public class UIScroll : MonoBehaviour
 	Color HideItemColor (Transform item, Color itemColor)
 	{
 		Color newColor = itemColor;
+		if (Direction == UIScrollDirection.Vertical) {
+			if (item.position.y > box2D.bounds.max.y) {
+			
+				var alpha = 1 - (Easing (1, Mathf.Abs (item.position.y - box2D.bounds.max.y), hideDuration) - 1);
+			
+				newColor = new Color (itemColor.r, itemColor.g, itemColor.b, alpha);
 
-		if (item.position.y > start.transform.position.y) {
+			} else if (item.position.y < box2D.bounds.min.y) {
+				var alpha = 1 - (Easing (1, Mathf.Abs (item.position.y - box2D.bounds.min.y), hideDuration) - 1);
 			
-			var alpha = 1 - (Easing (1, Mathf.Abs (item.position.y - start.transform.position.y), hideDuration) - 1);
+				newColor = new Color (itemColor.r, itemColor.g, itemColor.b, alpha);
+
+			} else {
 			
-			newColor = new Color (
-				itemColor.r,
-				itemColor.g,
-				itemColor.b,
-				alpha
-			);
-//			if (alpha <= 0.1f) {
-//				item.gameObject.SetActive (false);
-//			}
-		} else if (item.position.y < end.transform.position.y) {
-			var alpha = 1 - (Easing (1, Mathf.Abs (item.position.y - end.transform.position.y), hideDuration) - 1);
-			
-			newColor = new Color (
-				itemColor.r,
-				itemColor.g,
-				itemColor.b,
-				alpha
-			);
-//			if (alpha <= 0.1f) {
-//				item.gameObject.SetActive (false);
-//			}
+				newColor = new Color (itemColor.r, itemColor.g, itemColor.b, 1);
+			}
 		} else {
-			
-			newColor = new Color (
-				itemColor.r,
-				itemColor.g,
-				itemColor.b,
-				1
-			);
-			
-			//item.gameObject.SetActive(true);
+			if (item.position.x > box2D.bounds.max.x) {
+					
+				var alpha = 1 - (Easing (1, Mathf.Abs (item.position.x - box2D.bounds.max.x), hideDuration) - 1);
+
+				newColor = new Color (itemColor.r, itemColor.g, itemColor.b, alpha);
+
+			} else if (item.position.x < box2D.bounds.min.x) {
+				var alpha = 1 - (Easing (1, Mathf.Abs (item.position.x - box2D.bounds.min.x), hideDuration) - 1);
+					
+				newColor = new Color (itemColor.r, itemColor.g, itemColor.b, alpha);
+					
+			} else {
+					
+				newColor = new Color (itemColor.r, itemColor.g, itemColor.b, 1);
+			}
 		}
 
 		return newColor;
 	}
 
+	void OnMouseDown ()
+	{
+		pressed = true;
+		mouseLastPosition = Input.mousePosition;
+	}
+
+	void OnMouseUp ()
+	{
+		pressed = false;
+		dragDelta = Vector3.zero;
+	}
+
 	void updateDragDelta ()
 	{
-		if (Input.GetMouseButtonDown (0)) {
-			pressed = true;
-			mouseLastPosition = Input.mousePosition;
-			dragDelta = Vector3.zero;
-		} else if (Input.GetMouseButtonUp (0)) {
-			pressed = false;
-			dragDelta = Vector3.zero;
-		}
-		
 		if (pressed) {
 
 			dragDelta = Input.mousePosition - mouseLastPosition;
@@ -131,32 +139,81 @@ public class UIScroll : MonoBehaviour
 		}
 	}
 
+	bool NeedScroll ()
+	{
+		var needScroll = false;
+		if (Direction == UIScrollDirection.Vertical) {
+			
+			needScroll = (itemsBounds.size.y > box2D.size.y - startMargin) 
+				|| (itemsBounds.max.y > box2D.bounds.max.y)
+				|| (itemsBounds.min.y < box2D.bounds.min.y);
+		} else {
+			needScroll = (itemsBounds.size.x > box2D.size.x - startMargin) 
+				|| (itemsBounds.max.x > box2D.bounds.max.x)
+				|| (itemsBounds.min.x < box2D.bounds.min.x);
+			
+		}
+		return needScroll;
+	}
+
 	void scrollContent ()
 	{
-		updateDragDelta ();
-			
-		//Movimenta os items de acordo com o drag
-		var itemPos = items.transform.position;
-		itemPos.y += dragDelta.y * Time.deltaTime;
-		items.transform.position = itemPos;
 
-		//Calcula a posiçao da parte inferior (onde termina os items)
-		var itemsBottom = items.transform.position + boundsCenterFix - (itemsBounds.size / 2);
-			
-		//Limita os items ao final do scroll
-		if (itemsBottom.y > end.transform.position.y) {
-				
-			items.transform.position = new Vector3 (items.transform.position.x,
-				                                        end.transform.position.y + itemsBounds.size.y,
-				                                        items.transform.position.z);
+		if (NeedScroll ()) {
+
+			//Movimenta os items de acordo com o drag
+			var itemPos = items.transform.position;
+
+			if (Direction == UIScrollDirection.Vertical) {
+				itemPos.y += dragDelta.y * Time.deltaTime;
+			} else {
+				itemPos.x += dragDelta.x * Time.deltaTime;
+			}
+
+			items.transform.position = itemPos;
 		}
+		itemsBounds.center = items.transform.position + boundsCenterFix;
+		
+		//Calcula a posiçao da parte inferior (onde termina os items)
+		//var itemsBottom = items.transform.position  - (itemsBounds.size / 2);// + boundsCenterFix
+			
+		if (Direction == UIScrollDirection.Vertical) {
 
-		//Limita os items ao início do scroll
-		if (items.transform.position.y < start.transform.position.y) {
-
-			items.transform.position = new Vector3 (items.transform.position.x,
-				                                        start.transform.position.y,
+			//Limita os items ao final do scroll
+			if (itemsBounds.min.y > box2D.bounds.min.y
+				&& itemsBounds.size.y > box2D.size.y - startMargin) {
+				var newPos = box2D.bounds.min + (itemsBounds.size / 2) - boundsCenterFix;
+				items.transform.position = new Vector3 (items.transform.position.x,
+			                                        newPos.y,
 				                                        items.transform.position.z);
+			}
+
+			//Limita os items ao início do scroll
+			if (itemsBounds.max.y < box2D.bounds.max.y - startMargin) {
+				var newPos = box2D.bounds.max - (itemsBounds.size / 2) - boundsCenterFix;
+				items.transform.position = new Vector3 (items.transform.position.x,
+				                                        newPos.y - startMargin,
+				                                        items.transform.position.z);
+			}
+		} else {
+			//Limita os items ao início do scroll (Direita)
+			if (itemsBounds.max.x < box2D.bounds.max.y
+				&& itemsBounds.size.x > box2D.size.x - startMargin) {
+				var newPos = box2D.bounds.max - (itemsBounds.size / 2) - boundsCenterFix;
+				items.transform.position = new Vector3 (newPos.x,
+				                                        items.transform.position.y,
+				                                        items.transform.position.z);
+				Debug.Log("a");
+			}
+
+			//Limita os items ao final do scroll (Esquerda)
+			if (itemsBounds.min.x > box2D.bounds.min.x + startMargin) {
+				var newPos = box2D.bounds.min + (itemsBounds.size / 2) - boundsCenterFix;
+				items.transform.position = new Vector3 (newPos.x + startMargin,
+					                                        items.transform.position.y,
+				                                        items.transform.position.z);
+				Debug.Log("b");
+			}
 		}
 	}
 
@@ -176,10 +233,12 @@ public class UIScroll : MonoBehaviour
 		Bounds bounds = new Bounds (transform.position, Vector3.zero); 
 		
 		foreach (Transform child in transform) {
-			if (child.gameObject.renderer != null) {
-				bounds.Encapsulate (child.gameObject.renderer.bounds);   
-			} else {
-				bounds.Encapsulate (CalculateBounds (child));
+			if (child.gameObject.activeSelf) {
+				if (child.gameObject.renderer != null) {
+					bounds.Encapsulate (child.gameObject.renderer.bounds);   
+				} else {
+					bounds.Encapsulate (CalculateBounds (child));
+				}
 			}
 		}
 		
