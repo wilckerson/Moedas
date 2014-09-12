@@ -24,7 +24,14 @@ public class LevelItem : MonoBehaviour {
 		if(Input.GetMouseButtonUp(0) && mouseInside){
 			//Debug.Log("LevelItemMouseDown");
 
-			parentScroll.SnapToItem(this.transform);
+			if(parentScroll.SelectedItem() == this.transform)
+			{
+				Application.LoadLevel("Game");
+			}
+			else
+			{
+				parentScroll.SnapToItem(this.transform);
+			}
 
 		}
 

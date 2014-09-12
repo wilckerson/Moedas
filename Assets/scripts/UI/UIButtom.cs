@@ -9,6 +9,7 @@ public class UIButtom : MonoBehaviour
 	//private SpriteRenderer spriteRenderer;
 	public float scaleFactor = 1.1f;
 	private bool pressed = false;
+	public string GoToScene = null;
 
 	// Use this for initialization
 	void Start ()
@@ -24,29 +25,33 @@ public class UIButtom : MonoBehaviour
 
 	void OnMouseDown ()
 	{
-		Debug.Log("Down");
+		Debug.Log ("Down");
 		pressed = true;
-		transform.localScale = new Vector3(
+		transform.localScale = new Vector3 (
 			transform.localScale.x * scaleFactor,
 			transform.localScale.y * scaleFactor,
 			transform.localScale.z
-			);
+		);
 		//spriteRenderer.sprite = activeSprite;
 	}
 
 	void OnMouseUp ()
 	{
-		Debug.Log("Up");
+		Debug.Log ("Up");
 		pressed = false;
-		transform.localScale = new Vector3(
+		transform.localScale = new Vector3 (
 			transform.localScale.x / scaleFactor,
 			transform.localScale.y / scaleFactor,
 			transform.localScale.z
-			);
+		);
 		//spriteRenderer.sprite = currentSprite;
+		if (!string.IsNullOrEmpty (GoToScene)) {
+			Application.LoadLevel (GoToScene);
+		}
 	}
 
-	public bool IsPressed(){
+	public bool IsPressed ()
+	{
 		return pressed;
 	}
 }

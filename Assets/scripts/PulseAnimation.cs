@@ -6,12 +6,12 @@ public class PulseAnimation : MonoBehaviour {
 	public float velocity = 4;//4;
 	public float pulse = 0.03f;//70;
 
-	Vector3 initialScale;
+	//Vector3 initialScale;
 	float rndX = 0;
 	float rndY = 0;
 	// Use this for initialization
 	void Start () {
-		initialScale = transform.localScale;
+		//initialScale = transform.localScale;
 
 		rndX = Random.Range(-1,1f);
 		rndY = Random.Range(-1,1f);

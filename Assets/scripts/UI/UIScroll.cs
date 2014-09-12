@@ -379,4 +379,13 @@ public class UIScroll : MonoBehaviour
 			}
 		}
 	}
+
+	public Transform SelectedItem()
+	{
+		Transform item = null;
+		if(items.transform.childCount > 0){
+			item = items.transform.GetChild(snapItemIdx);
+		}
+		return item;
+	}
 }

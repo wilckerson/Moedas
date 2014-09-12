@@ -8,7 +8,7 @@ public class GameManager : MonoBehaviour
 		public static float gameTime;
 		public static int sum;
 		public TextMesh targetText;
-		public GUIText gameTimeText;
+	public TextMesh gameTimeText;
 	public GameObject screenTop;
 	public static float screenTopY;
 		int target;
@@ -34,7 +34,7 @@ public class GameManager : MonoBehaviour
 	
 		if (Lose == false) {
 						gameTime += Time.deltaTime;
-						gameTimeText.text = gameTime.ToString ();
+						gameTimeText.text = gameTime.ToString ("00:00");
 
 						if (sum > target) {
 								//Errou, desmarca as moedas selecionadas
@@ -54,7 +54,8 @@ public class GameManager : MonoBehaviour
 				} else {
 			//Debug.Log("Perdeu");
 			GameOverManager.lastGameTime = gameTime;
-			Application.LoadLevel("GameOver");
+			//Application.LoadLevel("GameOver");
+			Application.LoadLevel("Levels");
 				}
 		}
 
