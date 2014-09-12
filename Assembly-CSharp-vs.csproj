@@ -55,6 +55,7 @@
      <Compile Include="Assets\scripts\LevelItem.cs" />
      <Compile Include="Assets\scripts\Money.cs" />
      <Compile Include="Assets\scripts\MoneyManager.cs" />
+     <Compile Include="Assets\scripts\PulseAnimation.cs" />
      <Compile Include="Assets\scripts\RndAnimStart.cs" />
      <Compile Include="Assets\scripts\ScreenTop.cs" />
      <Compile Include="Assets\scripts\Test.cs" />
