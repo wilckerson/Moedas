@@ -52,13 +52,14 @@
      <Compile Include="Assets\scripts\GameManager.cs" />
      <Compile Include="Assets\scripts\GameOverManager.cs" />
      <Compile Include="Assets\scripts\LevelDefinition.cs" />
+     <Compile Include="Assets\scripts\LevelItem.cs" />
      <Compile Include="Assets\scripts\Money.cs" />
      <Compile Include="Assets\scripts\MoneyManager.cs" />
      <Compile Include="Assets\scripts\RndAnimStart.cs" />
      <Compile Include="Assets\scripts\ScreenTop.cs" />
      <Compile Include="Assets\scripts\Test.cs" />
-     <Compile Include="Assets\scripts\UIButtom.cs" />
-     <Compile Include="Assets\scripts\UIScroll.cs" />
+     <Compile Include="Assets\scripts\UI\UIButtom.cs" />
+     <Compile Include="Assets\scripts\UI\UIScroll.cs" />
      <None Include="Assets\Resources\AlphaMask.shader" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
