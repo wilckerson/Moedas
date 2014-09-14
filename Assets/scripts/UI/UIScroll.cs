@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 
 public enum UIScrollDirection
@@ -16,6 +17,10 @@ public class UIScroll : MonoBehaviour
 	public bool snapItem = false;
 	public float snapVelocity = 2;
 	public float dragDeltaMax = 30;
+
+	public delegate void OnItemSelectedDelegate (Transform itemSelected);
+	public event OnItemSelectedDelegate OnItemSelected;
+
 	bool pressed = false;
 	Vector3 dragDelta;
 	Vector3 dragTotal;
@@ -25,6 +30,7 @@ public class UIScroll : MonoBehaviour
 	BoxCollider2D box2D;
 	int snapItemIdx = 0;
 	int nextSnapItemIdx;
+	bool focused = false;
 	// Use this for initialization
 	void Start ()
 	{
@@ -218,6 +224,13 @@ public class UIScroll : MonoBehaviour
 		//SNAP
 		if (items.transform.childCount > 0) {
 
+			if ((Direction == UIScrollDirection.Horizontal && dragDelta.x != 0)
+			    ||(Direction == UIScrollDirection.Vertical && dragDelta.y != 0)) {
+
+				focused = false;
+				if(OnItemSelected != null) { OnItemSelected(null); }
+			}
+
 			if (pressed) {
 				float minDist = int.MaxValue;
 
@@ -241,7 +254,7 @@ public class UIScroll : MonoBehaviour
 					//Priorizando os outros itens (Não precisa arrastar completamente até o outro item)
 					if (i != snapItemIdx || isEdge) {
 						//Prioridade
-						dist = dist * (0.168f * 3);
+						dist = dist * (0.168f * 1);
 					}
 					dist = Mathf.Abs (dist);
 					//Debug.DrawLine (this.transform.position, child.position + new Vector3 (0, i, 0), Color.blue);
@@ -266,18 +279,37 @@ public class UIScroll : MonoBehaviour
 				if (Direction == UIScrollDirection.Horizontal) {
 					if (snapItem.position.x > this.transform.position.x) {
 						items.transform.position -= new Vector3 (snapVelocity, 0, 0) * Time.deltaTime;
+						//focused = false;
+
 					}
-			
 					if (snapItem.position.x < this.transform.position.x) {
 						items.transform.position += new Vector3 (snapVelocity, 0, 0) * Time.deltaTime;
+						//focused = false;
 					}
+
+					float dist = this.transform.position.x - snapItem.position.x;
+					if(Mathf.Abs(dist) > 0 && Mathf.Abs(dist) < 0.1f){
+						items.transform.position += new Vector3 (dist,0,0);
+
+						focused = true;
+						if(OnItemSelected != null) { OnItemSelected(snapItem); }
+					}
+
+
 				} else {
 					if (snapItem.position.y > this.transform.position.y) {
 						items.transform.position -= new Vector3 (0, snapVelocity, 0) * Time.deltaTime;
+						//focused = false;
 					}
-					
 					if (snapItem.position.y < this.transform.position.y) {
 						items.transform.position += new Vector3 (0, snapVelocity, 0) * Time.deltaTime;
+						//focused = false;
+					}
+					float dist = this.transform.position.y - snapItem.position.y;
+					if(Mathf.Abs(dist) > 0 && Mathf.Abs(dist) < 0.1f){
+						items.transform.position += new Vector3 (0,dist,0);
+						focused = true;
+						if(OnItemSelected != null) { OnItemSelected(snapItem); }
 					}
 				}
 			}
@@ -380,11 +412,11 @@ public class UIScroll : MonoBehaviour
 		}
 	}
 
-	public Transform SelectedItem()
+	public Transform SelectedItem ()
 	{
 		Transform item = null;
-		if(items.transform.childCount > 0){
-			item = items.transform.GetChild(snapItemIdx);
+		if (items.transform.childCount > 0 && focused) {
+			item = items.transform.GetChild (snapItemIdx);
 		}
 		return item;
 	}

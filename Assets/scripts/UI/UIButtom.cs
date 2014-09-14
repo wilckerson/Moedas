@@ -25,28 +25,32 @@ public class UIButtom : MonoBehaviour
 
 	void OnMouseDown ()
 	{
-		Debug.Log ("Down");
-		pressed = true;
-		transform.localScale = new Vector3 (
+		if (enabled) {
+			Debug.Log ("Down");
+			pressed = true;
+			transform.localScale = new Vector3 (
 			transform.localScale.x * scaleFactor,
 			transform.localScale.y * scaleFactor,
 			transform.localScale.z
-		);
+			);
+		}
 		//spriteRenderer.sprite = activeSprite;
 	}
 
 	void OnMouseUp ()
 	{
-		Debug.Log ("Up");
-		pressed = false;
-		transform.localScale = new Vector3 (
+		if (enabled) {
+			Debug.Log ("Up");
+			pressed = false;
+			transform.localScale = new Vector3 (
 			transform.localScale.x / scaleFactor,
 			transform.localScale.y / scaleFactor,
 			transform.localScale.z
-		);
-		//spriteRenderer.sprite = currentSprite;
-		if (!string.IsNullOrEmpty (GoToScene)) {
-			Application.LoadLevel (GoToScene);
+			);
+			//spriteRenderer.sprite = currentSprite;
+			if (!string.IsNullOrEmpty (GoToScene)) {
+				Application.LoadLevel (GoToScene);
+			}
 		}
 	}
 

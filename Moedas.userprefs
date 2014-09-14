@@ -1,9 +1,12 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/scripts/PulseAnimation.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/scripts/LevelItem.cs">
     <Files>
-      <File FileName="Assets/scripts/PulseAnimation.cs" Line="7" Column="27" />
-      <File FileName="Assets/scripts/UI/UIButtom.cs" Line="22" Column="3" />
+      <File FileName="Assets/scripts/UI/UIButtom.cs" Line="49" Column="1" />
+      <File FileName="Assets/scripts/GameManager.cs" Line="58" Column="36" />
+      <File FileName="Assets/scripts/PulseAnimation.cs" Line="22" Column="38" />
+      <File FileName="Assets/scripts/LevelItem.cs" Line="29" Column="35" />
+      <File FileName="Assets/scripts/UI/UIScroll.cs" Line="388" Column="4" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -11,7 +14,7 @@
           <Node name="Assembly-CSharp" expanded="True">
             <Node name="scripts" expanded="True">
               <Node name="UI" expanded="True" />
-              <Node name="PulseAnimation.cs" selected="True" />
+              <Node name="LevelItem.cs" selected="True" />
             </Node>
           </Node>
         </State>
