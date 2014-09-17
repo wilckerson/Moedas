@@ -60,7 +60,7 @@ public class MoneyManager : MonoBehaviour
 				if (time > nextSpanTime) {
 			
 						//var randomTime = Random.Range (0.2f, 2f) + (8f / (1 + time));
-			var randomTime = Random.Range (1f, 2f) + (10f / (1 + (time/2f)));
+			var randomTime = Random.Range (0f, 2f) + (8f / (1 + (time/2f)));
 						nextSpanTime = time + randomTime;
 						
 			Debug.Log ("Next: " + nextSpanTime);
@@ -72,9 +72,9 @@ public class MoneyManager : MonoBehaviour
 						}
 
 						//Se tiver poucas moedas
-						if (lstMoney.Count < 10) {
+						if (lstMoney.Count < 5) {
 								Debug.Log ("Poucas moedas?");
-								var rnd = Random.Range (3, 10);
+								var rnd = Random.Range (2, 5);
 								for (int i = 0; i < rnd; i++) {
 										Spawn ();
 								}

@@ -16,21 +16,26 @@ public class UIScroll : MonoBehaviour
 	public float startMargin = 0;
 	public bool snapItem = false;
 	public float snapVelocity = 2;
-	public float dragDeltaMax = 30;
+	//public float dragDeltaMax = 30;
 
 	public delegate void OnItemSelectedDelegate (Transform itemSelected);
+
 	public event OnItemSelectedDelegate OnItemSelected;
 
-	bool pressed = false;
+	static int currentInstance = -1;
 	Vector3 dragDelta;
 	Vector3 dragTotal;
-	Vector3 mouseLastPosition;
+	Vector3 lastWorldPos;
 	Bounds itemsBounds;
 	Vector3 boundsCenterFix;
 	BoxCollider2D box2D;
 	int snapItemIdx = 0;
 	int nextSnapItemIdx;
-	bool focused = false;
+	InputStatus inputStatus;
+	Vector3 inputPos;
+	Vector3 worldPos;
+	float inputDirty = 0.01f;
+
 	// Use this for initialization
 	void Start ()
 	{
@@ -44,7 +49,9 @@ public class UIScroll : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
-		updateDragDelta ();
+		UpdateInputPos ();
+
+		UpdateDragDelta ();
 
 		ApplyDrag ();
 
@@ -134,57 +141,6 @@ public class UIScroll : MonoBehaviour
 		return newColor;
 	}
 
-//	void OnMouseDown ()
-//	{
-//		Debug.Log("UIScrollMouseDown");
-////		pressed = true;
-////		mouseLastPosition = Input.mousePosition;
-//	}
-//
-//	void OnMouseUp ()
-//	{
-//		pressed = false;
-//		dragDelta = Vector3.zero;
-//	}
-
-	void updateDragDelta ()
-	{
-		bool mouseInside = box2D.bounds.IntersectRay (Camera.main.ScreenPointToRay (Input.mousePosition));
-		//Debug.Log(mouseInside);
-
-		if (Input.GetMouseButtonDown (0) && mouseInside) {
-			//Debug.Log("UIScrollMouseDown");
-			pressed = true;
-			mouseLastPosition = Input.mousePosition;
-			dragDelta = Vector3.zero;
-			dragTotal = Vector3.zero;
-		} else if (Input.GetMouseButtonUp (0)) {
-			pressed = false;
-			dragDelta = Vector3.zero;
-			dragTotal = Vector3.zero;
-		}
-
-		if (pressed) {
-
-			dragDelta = Input.mousePosition - mouseLastPosition;
-			dragTotal += dragDelta;
-
-			if (Mathf.Abs (dragDelta.x) > dragDeltaMax) {
-
-				dragDelta = new Vector3 (dragDeltaMax * Mathf.Sign (dragDelta.x), dragDelta.y, dragDelta.z);
-				;
-			}
-			if (Mathf.Abs (dragDelta.y) > dragDeltaMax) {
-				dragDelta = new Vector3 (dragDelta.x, dragDeltaMax * Mathf.Sign (dragDelta.y), dragDelta.z);
-				;
-			}
-
-			//Debug.Log (dragDelta);
-			
-			mouseLastPosition = Input.mousePosition;
-		}
-	}
-
 	bool NeedScroll ()
 	{
 		var needScroll = false;
@@ -210,110 +166,151 @@ public class UIScroll : MonoBehaviour
 			var itemPos = items.transform.position;
 			
 			if (Direction == UIScrollDirection.Vertical) {
-				itemPos.y += dragDelta.y * Time.deltaTime;
+				itemPos.y += dragDelta.y;
 			} else {
-				itemPos.x += dragDelta.x * Time.deltaTime;
+				itemPos.x += dragDelta.x;
 			}
 			
 			items.transform.position = itemPos;
 		}
 	}
 
+	void UpdateDragDelta ()
+	{
+		worldPos = Camera.main.ScreenPointToRay (new Vector3 (inputPos.x, inputPos.y, 0)).GetPoint (-Camera.main.transform.position.z);
+
+		dragDelta *= 0.8f;
+
+		if (box2D.OverlapPoint (worldPos)) {
+		
+			var instanceId = this.GetInstanceID();
+			if (inputStatus == InputStatus.Move && (currentInstance == -1 || currentInstance == instanceId)) {
+				dragDelta = worldPos - lastWorldPos;
+				dragTotal += dragDelta;
+				currentInstance = instanceId;
+			}
+			
+			lastWorldPos = worldPos;
+		}
+
+		if (inputStatus == InputStatus.None) {
+			dragTotal = Vector3.zero;
+			currentInstance = -1;
+		}
+	}
+
+	void UpdateInputPos ()
+	{
+		if (SystemInfo.deviceType == DeviceType.Handheld) {
+			if (Input.touchCount > 0) {
+				inputPos = Input.GetTouch (0).position;
+				
+				if (inputStatus == InputStatus.None) {
+					inputStatus = InputStatus.Down;
+					
+				} else if (inputStatus == InputStatus.Down) {
+					inputStatus = InputStatus.Move;
+				}
+				
+			} else {			
+				inputStatus = InputStatus.None;
+			}
+		} else {
+			inputPos = Input.mousePosition;
+			
+			if (inputStatus == InputStatus.Down) {
+				inputStatus = InputStatus.Move;
+			}
+			if (Input.GetMouseButtonDown (0)) {
+				if (inputStatus == InputStatus.None) {
+					inputStatus = InputStatus.Down;
+				}
+			} else if (Input.GetMouseButtonUp (0)) {
+				inputStatus = InputStatus.None;
+			}
+		}
+	}
+
 	void SnapContent ()
 	{
-		//SNAP
-		if (items.transform.childCount > 0) {
-
-			if ((Direction == UIScrollDirection.Horizontal && dragDelta.x != 0)
-			    ||(Direction == UIScrollDirection.Vertical && dragDelta.y != 0)) {
-
-				focused = false;
-				if(OnItemSelected != null) { OnItemSelected(null); }
-			}
-
-			if (pressed) {
-				float minDist = int.MaxValue;
-
-				for (int i = 0; i < items.transform.childCount; i++) {
-					var child = items.transform.GetChild (i);
-					float dist = 0;
-					if (Direction == UIScrollDirection.Vertical) {
-						dist = child.position.y - this.transform.position.y;
-					} else {
-						dist = child.position.x - this.transform.position.x;
-					}
-
-					//Debug.Log(dist);
-
-					//Resolvendo bug da prioridade quando tenta voltar o item inicial ou tenta ir alem do item final
-					bool isEdge = false;
-					if ((dist > 0 && snapItemIdx == 0) || (dist < 0 && snapItemIdx == items.transform.childCount - 1)) {
-						isEdge = true;
-					}
-
-					//Priorizando os outros itens (Não precisa arrastar completamente até o outro item)
-					if (i != snapItemIdx || isEdge) {
-						//Prioridade
-						dist = dist * (0.168f * 1);
-					}
-					dist = Mathf.Abs (dist);
-					//Debug.DrawLine (this.transform.position, child.position + new Vector3 (0, i, 0), Color.blue);
-
-					if (dist < minDist) {
-						minDist = dist;
-						nextSnapItemIdx = i;
-						//Debug.Log ("nextsnapIdx " + nextSnapItemIdx);
-					}
-				}
-
-			}
-
-			if (pressed == false) {
-
-				snapItemIdx = nextSnapItemIdx;
-				//Debug.Log (snapItemIdx);
-				//Obtendo o item
-				var snapItem = items.transform.GetChild (snapItemIdx);
-
-				//Movendo para focar o item
-				if (Direction == UIScrollDirection.Horizontal) {
-					if (snapItem.position.x > this.transform.position.x) {
-						items.transform.position -= new Vector3 (snapVelocity, 0, 0) * Time.deltaTime;
-						//focused = false;
-
-					}
-					if (snapItem.position.x < this.transform.position.x) {
-						items.transform.position += new Vector3 (snapVelocity, 0, 0) * Time.deltaTime;
-						//focused = false;
-					}
-
-					float dist = this.transform.position.x - snapItem.position.x;
-					if(Mathf.Abs(dist) > 0 && Mathf.Abs(dist) < 0.1f){
-						items.transform.position += new Vector3 (dist,0,0);
-
-						focused = true;
-						if(OnItemSelected != null) { OnItemSelected(snapItem); }
-					}
-
-
+		if (inputStatus == InputStatus.Move) {
+			float minDist = int.MaxValue;
+			for (int i = 0; i < items.transform.childCount; i++) {
+				var child = items.transform.GetChild (i);
+				float dist = 0;
+				if (Direction == UIScrollDirection.Vertical) {
+					dist = child.position.y - this.transform.position.y;
 				} else {
-					if (snapItem.position.y > this.transform.position.y) {
-						items.transform.position -= new Vector3 (0, snapVelocity, 0) * Time.deltaTime;
-						//focused = false;
-					}
-					if (snapItem.position.y < this.transform.position.y) {
-						items.transform.position += new Vector3 (0, snapVelocity, 0) * Time.deltaTime;
-						//focused = false;
-					}
-					float dist = this.transform.position.y - snapItem.position.y;
-					if(Mathf.Abs(dist) > 0 && Mathf.Abs(dist) < 0.1f){
-						items.transform.position += new Vector3 (0,dist,0);
-						focused = true;
-						if(OnItemSelected != null) { OnItemSelected(snapItem); }
+					dist = child.position.x - this.transform.position.x;
+				}
+
+				//Resolvendo bug da prioridade quando tenta voltar o item inicial ou tenta ir alem do item final
+				bool isEdge = false;
+				if ((dist > 0 && snapItemIdx == 0) || (dist < 0 && snapItemIdx == items.transform.childCount - 1)) {
+					isEdge = true;
+				}
+				
+				//Priorizando os outros itens (Não precisa arrastar completamente até o outro item)
+				if (i != snapItemIdx || isEdge) {
+					//Prioridade
+					dist = dist * (0.168f * 2);
+				}
+
+				dist = Mathf.Abs (dist);
+
+				if (dist < minDist) {
+					minDist = dist;
+					nextSnapItemIdx = i;
+				}
+			}
+		}
+
+		if (inputStatus == InputStatus.None) {
+			var snapItem = items.transform.GetChild (nextSnapItemIdx);
+			
+			//Movendo para focar o item
+			if (Direction == UIScrollDirection.Horizontal) {
+				var vel = Mathf.Abs (snapVelocity * Time.deltaTime);
+
+				if (snapItem.position.x > this.transform.position.x) {
+					items.transform.position -= new Vector3 (vel, 0, 0);
+					
+				} else if (snapItem.position.x < this.transform.position.x) {
+					items.transform.position += new Vector3 (vel, 0, 0);
+				}
+				
+				float dist = this.transform.position.x - snapItem.position.x;
+				if (Mathf.Abs (dist) <= (vel*2)) {
+					items.transform.position += new Vector3 (dist,0,0);
+
+					snapItemIdx = nextSnapItemIdx;
+					//nextSnapItemIdx = -1;
+					if (OnItemSelected != null) {
+						OnItemSelected (snapItem);
 					}
 				}
 			}
+			else if (Direction == UIScrollDirection.Vertical) {
+				var vel = Mathf.Abs (snapVelocity * Time.deltaTime);
 
+				if (snapItem.position.y > this.transform.position.y) {
+					items.transform.position -= new Vector3 (0,vel, 0);
+
+				} else if (snapItem.position.y < this.transform.position.y) {
+					items.transform.position += new Vector3 (0,vel, 0);
+				}
+				
+				float dist = this.transform.position.y - snapItem.position.y;
+				if (Mathf.Abs (dist) <= vel) {
+					items.transform.position += new Vector3 (0,dist,0);
+					
+					snapItemIdx = nextSnapItemIdx;
+					//nextSnapItemIdx = -1;
+					if (OnItemSelected != null) {
+						OnItemSelected (snapItem);
+					}
+				}
+			}
 		}
 	}
 
@@ -402,7 +399,7 @@ public class UIScroll : MonoBehaviour
 		for (int i = 0; i < items.transform.childCount; i++) {
 
 			if (items.transform.GetChild (i) == item) {
-				if (dragTotal.x == 0 || dragTotal.y == 0) {
+				if (Mathf.Abs(dragTotal.x) <= inputDirty || Mathf.Abs(dragTotal.y) <= inputDirty) {
 					//Debug.Log ("SnapItem " + i.ToString ());
 					nextSnapItemIdx = i;
 				}
@@ -415,7 +412,7 @@ public class UIScroll : MonoBehaviour
 	public Transform SelectedItem ()
 	{
 		Transform item = null;
-		if (items.transform.childCount > 0 && focused) {
+		if (items.transform.childCount > 0 && (Mathf.Abs(dragTotal.x) < inputDirty || Mathf.Abs(dragTotal.y) < inputDirty)) {
 			item = items.transform.GetChild (snapItemIdx);
 		}
 		return item;

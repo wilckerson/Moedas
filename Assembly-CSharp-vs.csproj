@@ -49,6 +49,7 @@
      <Compile Include="Assets\scripts\CalculateBounds.cs" />
      <Compile Include="Assets\scripts\Data\GameData.cs" />
      <Compile Include="Assets\scripts\Data\Repository.cs" />
+     <Compile Include="Assets\scripts\Drag.cs" />
      <Compile Include="Assets\scripts\GameManager.cs" />
      <Compile Include="Assets\scripts\GameOverManager.cs" />
      <Compile Include="Assets\scripts\LevelDefinition.cs" />
