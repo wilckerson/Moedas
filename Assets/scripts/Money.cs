@@ -23,12 +23,12 @@ public class Money : MonoBehaviour
 		
 
 				spriteRenderer.color = selected ? selectedColor : defaultColor;
-		var topY = transform.position.y + (renderer.bounds.size.y / 2);
-
-		if (rigidbody2D.IsSleeping() && topY >= GameManager.screenTopY) {
-						GameManager.Lose = true;
-
-				}
+//		var topY = transform.position.y + (GetComponent<Renderer>().bounds.size.y / 2);
+//
+//		if (GetComponent<Rigidbody2D>().IsSleeping() && topY >= GameManager.screenTopY) {
+//						GameManager.Lose = true;
+//
+//				}
 		}
 
 //		void OnCollisionEnter2D (Collision2D coll)

@@ -10,6 +10,8 @@ public class UIButtom : MonoBehaviour
 	public float scaleFactor = 1.1f;
 	private bool pressed = false;
 	public string GoToScene = null;
+	public string eventName;
+	public EventCallbackUI eventCallback;
 
 	// Use this for initialization
 	void Start ()
@@ -33,6 +35,8 @@ public class UIButtom : MonoBehaviour
 			transform.localScale.y * scaleFactor,
 			transform.localScale.z
 			);
+
+
 		}
 		//spriteRenderer.sprite = activeSprite;
 	}
@@ -50,6 +54,10 @@ public class UIButtom : MonoBehaviour
 			//spriteRenderer.sprite = currentSprite;
 			if (!string.IsNullOrEmpty (GoToScene)) {
 				Application.LoadLevel (GoToScene);
+			}
+
+			if (eventCallback != null) {
+				eventCallback.OnEventCallbackUI (eventName);
 			}
 		}
 	}

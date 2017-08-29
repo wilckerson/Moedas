@@ -382,8 +382,8 @@ public class UIScroll : MonoBehaviour
 		
 		foreach (Transform child in transform) {
 			if (child.gameObject.activeSelf) {
-				if (child.gameObject.renderer != null) {
-					bounds.Encapsulate (child.gameObject.renderer.bounds);   
+				if (child.gameObject.GetComponent<Renderer>() != null) {
+					bounds.Encapsulate (child.gameObject.GetComponent<Renderer>().bounds);   
 				} else {
 					bounds.Encapsulate (CalculateBounds (child));
 				}

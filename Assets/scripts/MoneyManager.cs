@@ -14,8 +14,10 @@ public class MoneyManager : MonoBehaviour
 //	}
 		//Dictionary<CoinName,GameObject> prefabMoney;
 		GameObject[] prefabs;
-		public int initialSpan = 10;
+		public int initialSpawn = 10;
 		public float spawRange = 3;
+	public int maxScreenFill = 20;
+
 		public static List<Money> lstMoney;
 		static float nextSpanTime = 0;
 		// Use this for initialization
@@ -30,9 +32,8 @@ public class MoneyManager : MonoBehaviour
 				//Debug.Log (prefabs.Length);
 
 				//Initial Spawn
-				for (int i = 0; i < initialSpan; i++) {
-						Spawn ();
-				}
+			Spawn (initialSpawn);
+				
 
 		}
 	
@@ -41,13 +42,13 @@ public class MoneyManager : MonoBehaviour
 		{
 	
 				if (Input.GetKeyUp (KeyCode.Space)) {
-						//Debug.Log ("Spawn");
+						Debug.Log ("Manual Spawn");
 						Spawn ();
 
 				}
 
 
-				AutomaticSpawnLogic ();
+				//AutomaticSpawnLogic ();
 
 
 		}
@@ -85,7 +86,23 @@ public class MoneyManager : MonoBehaviour
 				}
 		}
 
-		void Spawn ()
+	public void SpawnToFillScreen(){
+
+		var diff = maxScreenFill - lstMoney.Count;
+		if (diff > 0) {
+			Spawn (diff);
+		}
+
+	}
+
+	public void SetActiveCoins(bool active){
+		foreach (var coin in lstMoney) {
+
+			coin.gameObject.SetActive (active);
+		}
+	}
+
+	public void Spawn (int count = 1)
 		{
 //				List<int> moneyIdx = new List<int> ();
 //
@@ -93,14 +110,17 @@ public class MoneyManager : MonoBehaviour
 //				if (porc > 20) {
 //					moneyIdx.Add(1);
 //				}
-
-				var coinIdx = Random.Range (1, prefabs.Length);
-				var rndRange = Random.Range (-spawRange, spawRange);
-				Vector3 pos = this.gameObject.transform.position + new Vector3 (rndRange, rndRange, 0);
+		for (int i = 0; i < count; i++) {
+			
 		
-				var instance = Instantiate (prefabs [coinIdx], pos, Quaternion.identity) as GameObject;
-				var coin = instance.GetComponent<Money> ();
-				lstMoney.Add (coin);
+			var coinIdx = Random.Range (1, prefabs.Length);
+			var rndRange = Random.Range (-spawRange, spawRange);
+			Vector3 pos = this.gameObject.transform.position + new Vector3 (rndRange, Mathf.Abs (rndRange * 2), 0);
+		
+			var instance = Instantiate (prefabs [coinIdx], pos, Quaternion.identity) as GameObject;
+			var coin = instance.GetComponent<Money> ();
+			lstMoney.Add (coin);
+		}
 		}
 
 		public static void DeselectMoney ()
